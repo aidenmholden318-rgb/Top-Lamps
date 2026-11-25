@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lamp</title>
+  <style>
+    body { font-family: sans-serif; text-align: center; padding: 40px; }
+    button { font-size: 20px; padding: 14px 28px; margin: 8px; }
+    input { width: 80%; }
+  </style>
+</head>
+<body>
+  <h1>Lamp</h1>
+  <button id="connect">Connect</button><br>
+  <input id="slider" type="range" min="0" max="255" value="0" disabled><br>
+  <button id="off" disabled>Off</button>
+  <script>
+    const SERVICE = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";
+    const CHAR = "beb5483e-36e1-4688-b7f5-ea07361b26a8";
+    let ch;
+    const slider = document.getElementById("slider");
+    const off = document.getElementById("off");
+
+    document.getElementById("connect").onclick = async () => {
+      const dev = await navigator.bluetooth.requestDevice({ filters: [{ name: "MyLamp" }], optionalServices: [SERVICE] });
+      const server = await dev.gatt.connect();
+      const svc = await server.getPrimaryService(SERVICE);
+      ch = await svc.getCharacteristic(CHAR);
+      slider.disabled = off.disabled = false;
+    };
+    slider.oninput = () => ch.writeValueWithoutResponse(Uint8Array.of(slider.value));
+    off.onclick = () => { slider.value = 0; ch.writeValueWithoutResponse(Uint8Array.of(0)); };
+  </script>
+</body>
+</html>
